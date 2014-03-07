@@ -1,0 +1,5 @@
+./java/.idea/
+./java/out
+./java/.DS_Store
+./java/pokemon.iml
+./java/pokemon.json
