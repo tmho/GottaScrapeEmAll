@@ -1,0 +1,49 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
+import static org.gradle.logging.StyledTextOutput.Style;
+def out = services.get(StyledTextOutputFactory).create("")
+
+System.setProperty("org.gradle.color.info", "BLUE")
+System.setProperty("org.gradle.color.success", "GREEN")
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.jsoup:jsoup:1.7.2'
+	compile 'org.springframework:spring-core:4.0.3.RELEASE'
+	compile 'org.springframework:spring-context:4.0.3.RELEASE'
+	compile 'com.fasterxml.jackson.core:jackson-core:2.3.2'
+	compile 'com.fasterxml.jackson.core:jackson-databind:2.3.1'
+	compile 'log4j:log4j:1.2.17'
+	
+    testCompile group: 'junit', name: 'junit', version: '4.+'
+    testCompile 'org.mockito:mockito-all:1.9.0'
+    testCompile 'org.hamcrest:hamcrest-all:1.3'
+}
+
+task getTestResources << {
+	def files = ["pinsir", "butterfree", "deoxys", "pikachu", "national"]
+	def resourcePath = "src/test/resources"
+	files.each() { 
+		out.text("\t-checking ${it}.html ")
+		if((new File("${resourcePath}/${it}.html")).exists()) {
+			out.text('       ').withStyle(Style.Success).println("OK")
+		} else {
+			out.text('       ').withStyle(Style.Info).println("DOWNLOADING")
+			def curl = "curl -o ${resourcePath}/${it}.html http://pokemondb.net/pokedex/${it}"
+    		curl.execute().waitFor()
+		}
+	}
+}
+
+processTestResources.dependsOn getTestResources
+
+task run(type:JavaExec) {
+   main = 'com.pokescrape.Main'
+   classpath = sourceSets.main.runtimeClasspath
+}
